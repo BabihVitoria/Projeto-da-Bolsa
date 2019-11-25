@@ -1,5 +1,6 @@
 package com.example.algamoney.api.resource;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -21,11 +22,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.algamoney.api.dto.LancamentoEstatisticaCategoria;
+import com.example.algamoney.api.dto.LancamentoEstatisticaDia;
 import com.example.algamoney.api.event.RecursoCriadoEvent;
 import com.example.algamoney.api.execeptionhandler.AlgamoneyExceptionHandler.Erro;
 import com.example.algamoney.api.model.Lancamento;
@@ -50,6 +54,18 @@ public class LancamentoResource {
 	
 	@Autowired
 	private MessageSource messageSource;
+	
+	@GetMapping("/estatistica/por-dia")
+	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
+	public List<LancamentoEstatisticaDia> porDia(){
+		return this.lancamentoRepository.porDia(LocalDate.now().withMonth(1));//depois tirar o mes
+	}
+	
+	@GetMapping("/estatistica/por-categoria")
+	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
+	public List<LancamentoEstatisticaCategoria> porCategoria(){
+		return this.lancamentoRepository.porCategoria(LocalDate.now().withMonth(1));//depois tirar o mes
+	}
 	
 	@GetMapping
 	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_LANCAMENTO') and #oauth2.hasScope('read')")
@@ -92,6 +108,18 @@ public class LancamentoResource {
 		List<Erro> erros = Arrays.asList(new Erro(mensagemUsuario, mensagemDesenvolvedor));
 		
 		return ResponseEntity.badRequest().body(erros);
+	}
+	
+	@PutMapping("/{codigo}")
+	@PreAuthorize("hasAuthority('ROLE_CADASTRAR_LANCAMENTO')")
+	public ResponseEntity<Lancamento> atualizar(@PathVariable Long codigo, @Valid @RequestBody Lancamento lancamento){
+		try {
+			Lancamento lancamentoSalva = lancamentoService.atualizar(codigo, lancamento);
+			return ResponseEntity.ok(lancamentoSalva);
+		}
+		catch (IllegalArgumentException e){
+			return ResponseEntity.notFound().build();
+		}
 	}
 	
 		

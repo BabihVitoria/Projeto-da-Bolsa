@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.algamoney.api.event.RecursoCriadoEvent;
 import com.example.algamoney.api.model.Pessoa;
 import com.example.algamoney.api.repository.PessoaRepository;
+import com.example.algamoney.api.repository.filter.PessoaFilter;
 import com.example.algamoney.api.service.PessoaService;
 
 @RestController
@@ -40,8 +41,8 @@ public class PessoaResource {
 	private ApplicationEventPublisher publisher;
 	
 	@GetMapping
-	public List<Pessoa> listar(){
-		return pessoaRepository.findAll();
+	public List<Pessoa> pesquisar(PessoaFilter pessoaFilter){
+		return pessoaRepository.filtrar(pessoaFilter);
 	}
 	
 	@PostMapping
@@ -83,7 +84,12 @@ public class PessoaResource {
 		pessoaService.atualizarPropriedadeAtivo(codigo, ativo);
 	
 	}
-	
+	/*
+	@GetMapping
+	@PreAuthorize("hasAuthority('ROLE_PESQUISAR_PESSOA')")
+	public Page<Pessoa> pesquisar(@RequestParam(required = false, defaultValue = "%") String nome, Pageable pageable) {
+		return pessoaRepository.findByNomeContaining(nome, pageable);
+	}*/
 	
 	
 }
